@@ -4,14 +4,19 @@
 #	Summary:	Ths script creates an image of a Microsoft SQL Server on Linux
 #               with AdventureWorks2017 Database preinstalled. The deployed
 #               SQL Server is a Developer Edition. The Image is based on the
-#               latest Image from Microsoft. To build this Image you need
-#               the Adventureworks2017.mdf and Adventureworks2017_log.ldf files.
-#               These files can be downloaded here 
-#               https://github.com/Microsoft/sql-server-samples/releases/tag/adventureworks
+#               latest Image from Microsoft. This image automatically downloads
+#               the AdventureWorks2017.bak file from Microsoft.
+#               https://github.com/Microsoft/sql-server-samples/releases/download/adventureworks/AdventureWorks2017.bak
 #
 #	Date:		2018-01-16
 #
 #	SQL Server Version: 2017
+#   Revision:   2018-03-13
+#                 - install mssql-cli (https://github.com/dbcli/mssql-cli)
+#                 - changed from attach database to restore database
+#                2018-03-17 
+#				  - get AdventureWorks 2017 Backup from official Microsoft
+#                   github repository
 #------------------------------------------------------------------------------
 #	Written by Frank Geisler, GDS Business Intelligence GmbH
 #
@@ -28,14 +33,15 @@ LABEL maintainer Frank Geisler <frank_geisler@geislers.net>
 # Create a directory where we can copy the Database files. 
 RUN mkdir /var/opt/sqldatabase
 
-# For this to work you have to copy the files AdventureWorks2017.mdf and 
-# AdventureWorks2017_log.ldf to the directory this dockerfile is located in.
-# From the documentation (http://docs.docker.com/reference/builder/#add):
-# "The <src> path must be inside the context of the build; you cannot 
-# ADD ../something/something, because the first step of a docker build is to 
-# send the context directory (and subdirectories) to the docker daemon."
-COPY AdventureWorks2017.mdf /var/opt/sqldatabase
-COPY AdventureWorks2017_log.ldf /var/opt/sqldatabase
+# Install pip and install 
+RUN apt-get update
+RUN apt-get -y install python-pip
+RUN pip install mssql-cli
+
+# This downloads the AdventureWorks2017.bak file from Microsoft
+WORKDIR /var/opt/sqldatabase
+RUN wget https://github.com/Microsoft/sql-server-samples/releases/download/adventureworks/AdventureWorks2017.bak
+
 
 # Select Edition of SQL Server. We use Developer Edition.
 # If you select another Edition make sure that you have the appropiate license.
@@ -44,7 +50,7 @@ ENV SA_PASSWORD=!demo54321
 ENV ACCEPT_EULA=Y
 
 # Give the SQL Server Service time to start
-# then log into the SQL Server and create the database on the copied files 
+# then log into the SQL Server and restore the database 
 HEALTHCHECK --interval=10s  \
 	CMD /opt/mssql-tools/bin/sqlcmd -S . -U sa -P !demo54321 \
-		-Q "CREATE DATABASE [AdventureWorks2017] ON (FILENAME = '/var/opt/sqldatabase/AdventureWorks2017.mdf'),(FILENAME = '/var/opt/sqldatabase/AdventureWorks2017_log.ldf') FOR ATTACH"
+		-Q "RESTORE DATABASE [AdventureWorks2017] FROM  DISK = N'/var/opt/sqldatabase/AdventureWorks2017.bak' WITH  FILE = 1,  MOVE N'AdventureWorks2017' TO N'/var/opt/mssql/data/AdventureWorks2017.mdf',  MOVE N'AdventureWorks2017_log' TO N'/var/opt/mssql/data/AdventureWorks2017_log.ldf',  NOUNLOAD,  STATS = 5"
