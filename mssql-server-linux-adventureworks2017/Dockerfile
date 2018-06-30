@@ -4,17 +4,22 @@
 #	Summary:	Ths script creates an image of a Microsoft SQL Server on Linux
 #               with AdventureWorks2017 Database preinstalled. The deployed
 #               SQL Server is a Developer Edition. The Image is based on the
-#               latest Image from Microsoft. This image automatically downloads
-#               the AdventureWorks2017.bak file from Microsoft.
-#               https://github.com/Microsoft/sql-server-samples/releases/download/adventureworks/AdventureWorks2017.bak
+#               latest Image from Microsoft. 
+#               This Dockerfile automatically downloads the Backup of 
+#               the AdventureWorks2017 Database and restores it
+#               The database is downloaded here:
+#               https://github.com/Microsoft/sql-server-samples/releases/tag/adventureworks
+#               Additionally it adds mssql_cli
+#               (https://github.com/dbcli/mssql-cli)
 #
 #	Date:		2018-01-16
 #
 #	SQL Server Version: 2017
+#
 #   Revision:   2018-03-13
 #                 - install mssql-cli (https://github.com/dbcli/mssql-cli)
 #                 - changed from attach database to restore database
-#                2018-03-17 
+#               2018-03-17 
 #				  - get AdventureWorks 2017 Backup from official Microsoft
 #                   github repository
 #------------------------------------------------------------------------------
@@ -33,15 +38,15 @@ LABEL maintainer Frank Geisler <frank_geisler@geislers.net>
 # Create a directory where we can copy the Database files. 
 RUN mkdir /var/opt/sqldatabase
 
-# Install pip and install 
+# Install pip and install mssql-cli
 RUN apt-get update
 RUN apt-get -y install python-pip
 RUN pip install mssql-cli
 
-# This downloads the AdventureWorks2017.bak file from Microsoft
+# This downloads the AdventureWorks2017.bak file from the official 
+# Microsoft github Repository
 WORKDIR /var/opt/sqldatabase
 RUN wget https://github.com/Microsoft/sql-server-samples/releases/download/adventureworks/AdventureWorks2017.bak
-
 
 # Select Edition of SQL Server. We use Developer Edition.
 # If you select another Edition make sure that you have the appropiate license.

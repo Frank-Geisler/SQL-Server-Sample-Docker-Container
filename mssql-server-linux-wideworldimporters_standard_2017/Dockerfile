@@ -9,6 +9,12 @@
 #
 #	Date:		2018-01-18
 #
+#   Revision:   2018-06-30
+#                 - install mssql-cli (https://github.com/dbcli/mssql-cli)
+#                 - changed from attach database to restore database 
+#				  - get WideWorldImporters_Standard Backup from official Microsoft
+#                   github repository
+#
 #	SQL Server Version: 2017
 #------------------------------------------------------------------------------
 #	Written by Frank Geisler, GDS Business Intelligence GmbH
@@ -26,13 +32,15 @@ LABEL maintainer Frank Geisler <frank_geisler@geislers.net>
 # Create a directory where we can copy the Database files. 
 RUN mkdir /var/opt/sqldatabase
 
-# For this to work you have to copy the files WideWorldImporters_Standard.bak, 
-# to the directory this dockerfile is located in.
-# From the documentation (http://docs.docker.com/reference/builder/#add):
-# "The <src> path must be inside the context of the build; you cannot 
-# ADD ../something/something, because the first step of a docker build is to 
-# send the context directory (and subdirectories) to the docker daemon."
-COPY WideWorldImporters-Standard.bak /var/opt/sqldatabase
+# Install pip and install mssql-cli
+RUN apt-get update
+RUN apt-get -y install python-pip
+RUN pip install mssql-cli
+
+# This downloads the AdventureWorks2017DW.bak file from the official
+# Microsoft github repository
+WORKDIR /var/opt/sqldatabase
+RUN wget https://github.com/Microsoft/sql-server-samples/releases/download/wide-world-importers-v1.0/WideWorldImporters-Standard.bak
 
 # Select Edition of SQL Server. We use Developer Edition.
 # If you select another Edition make sure that you have the appropiate license.
