@@ -31,7 +31,7 @@
 #	ANY KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED 
 #	TO THE IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
 #	PARTICULAR PURPOSE.
-#============================================================================*/
+#============================================================================
 FROM microsoft/mssql-server-linux:latest
 LABEL maintainer Frank Geisler <frank_geisler@geislers.net>
 
